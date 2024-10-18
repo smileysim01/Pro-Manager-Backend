@@ -4,6 +4,7 @@ const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 const dotenv = require("dotenv");
 const User = require("../schema/user.schema");
+const authMiddleware = require("../middlewares/auth");
 
 dotenv.config();
 
@@ -47,5 +48,47 @@ router.get("/", async (req, res) => {
     }
 });
 
+router.patch("/settings", authMiddleware, async (req,res) => { 
+    const {name, email, oldPassword, newPassword} = req.body;
+    const user = await User.findById(req.user);
+    let isUpdated = false;
+    if (!user) {
+        return res.status(400).json({message: "User not found."});
+    }
+    try {
+        if (newPassword && !oldPassword){
+            return res.status(400).json({message: "Old password is required for update."});
+        }
+        if (oldPassword) {
+            const isPasswordMatch = await bcrypt.compare(oldPassword, user.password);
+            if (!isPasswordMatch) {
+                return res.status(400).json({message: "Incorrect password."});
+            }
+            if (newPassword && newPassword != oldPassword) {
+                const hashedPassword = await bcrypt.hashSync(newPassword, 10);
+                user.password = hashedPassword;
+                isUpdated = true;
+            }
+        }
+        if (name && name != user.name) {
+            user.name = name;
+            isUpdated = true;
+        }
+        if (email && email != user.email) {
+            const userEmailExists = await User.findOne({email});
+            if (userEmailExists) {
+                return res.status(400).json({message: "Email already exists."});
+            }
+            user.email = email;
+            isUpdated = true;
+        }
+        if(isUpdated) {
+            await user.save();
+            res.status(200).json({message: "Settings updated successfully."});
+        }
+    } catch (err) {
+        res.status(500).json({message: "Internal server error. Settings could not be updated.", err});
+    }
+})
 
 module.exports = router;

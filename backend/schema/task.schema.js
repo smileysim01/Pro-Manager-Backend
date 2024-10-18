@@ -13,10 +13,13 @@ const taskSchema = new Schema({
         enum: ["High Priority", "Medium Priority", "Low Priority"]
     },
     assignTo: {
-        type: String,
+        type: [String]
+        //type: [Schema.Types.ObjectId],
+        //ref: "User"
     },
     checkList: {
-        type: [Array],
+        type: [String],
+        // type: [{task: {type: String, required: true}, done: {type: Boolean, default: false}}],
         required: true
     },
     createdAt: {
@@ -26,13 +29,19 @@ const taskSchema = new Schema({
     dueDate: {
         type: Date
     },
+    listType: {
+        type: String,
+        required: true,
+        enum: ["Backlog","To do", "In Progress", "Done"],
+        default: "To do"
+    },
     creator: {
-        type: Schema.ObjectId,
+        type: Schema.Types.ObjectId,
         ref: "User",
         required: true
     }
 });
 
 const Task = mongoose.model("Task", taskSchema);
-
+console.log("Hello", taskSchema);
 module.exports = Task;
