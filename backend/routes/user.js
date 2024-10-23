@@ -5,10 +5,12 @@ const jwt = require("jsonwebtoken");
 const dotenv = require("dotenv");
 const User = require("../schema/user.schema");
 const authMiddleware = require("../middlewares/auth");
+const validateRegistrationMiddleware = require("../middlewares/validateRegistration");
+const validateUpdateMiddleware = require("../middlewares/validateUpdate");
 
 dotenv.config();
 
-router.post("/register", async (req, res) => {
+router.post("/register", validateRegistrationMiddleware, async (req, res) => {
     const { name, email, password } = req.body;
     const ifUserExists = await User.findOne({ email });
     if (ifUserExists) {
@@ -17,7 +19,9 @@ router.post("/register", async (req, res) => {
     const hashedPassword = await bcrypt.hashSync(password, 10);
     const user = new User({ name, email, password: hashedPassword });
     await user.save();
-    res.status(201).json({message: "User registered successfully."});
+    const payload = {id: user._id};
+    const token = jwt.sign(payload, process.env.JWT_SECRET);
+    res.status(201).json({message: "User registered successfully.", token});
 });
 
 router.post("/login", async (req, res) => {
@@ -39,6 +43,14 @@ router.post("/login", async (req, res) => {
     }
 });
 
+router.post("/logout", authMiddleware, async (req,res) => {
+    try {
+        res.status(200).json({message: "User Logged out."})
+    } catch (err) {
+        res.status(500).json({message: "Internal server error. User could not be logged out."});
+    }
+})
+
 router.get("/", async (req, res) => {
     try {
         const users = await User.find().select("-password -__v");
@@ -48,7 +60,7 @@ router.get("/", async (req, res) => {
     }
 });
 
-router.patch("/settings", authMiddleware, async (req,res) => { 
+router.patch("/settings", authMiddleware, validateUpdateMiddleware, async (req,res) => { 
     const {name, email, oldPassword, newPassword} = req.body;
     const user = await User.findById(req.user);
     let isUpdated = false;
@@ -56,9 +68,6 @@ router.patch("/settings", authMiddleware, async (req,res) => {
         return res.status(400).json({message: "User not found."});
     }
     try {
-        if (newPassword && !oldPassword){
-            return res.status(400).json({message: "Old password is required for update."});
-        }
         if (oldPassword) {
             const isPasswordMatch = await bcrypt.compare(oldPassword, user.password);
             if (!isPasswordMatch) {
