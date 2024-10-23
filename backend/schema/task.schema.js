@@ -19,7 +19,8 @@ const taskSchema = new Schema({
     },
     checkList: {
         type: [String],
-        // type: [{task: {type: String, required: true}, done: {type: Boolean, default: false}}],
+        // type: [{subTask: {type: String, required: true}, done: {type: Boolean, default: false}}],
+        // validate: [checkListLimit, 'Checklist cannot have more than 3 items.']
         required: true
     },
     createdAt: {
@@ -39,6 +40,10 @@ const taskSchema = new Schema({
         type: Schema.Types.ObjectId,
         ref: "User",
         required: true
+    },
+    isPublic: {
+        type: Boolean,
+        default: false
     }
 });
 

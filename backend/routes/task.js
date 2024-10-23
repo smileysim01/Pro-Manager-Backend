@@ -127,9 +127,9 @@ router.patch("/:id", authMiddleware, async (req, res) => {
         if((user._id.toString() !== task.creator.toString()) && (!task.assignTo.includes(user.email))){ 
             return res.status(401).json({message: "You are not authorized to update this task."});
         }
-        const { title, priority, assignTo, checkList, dueDate, listType } = req.body;
+        const { title, priority, assignTo, checkList, dueDate, listType, isPublic} = req.body;
         const checkListArray = checkList ? checkList.split(",").map((item) => item.trim()) : [];
-        const updateTask = { title, priority, checkList: checkListArray, dueDate, listType }
+        const updateTask = { title, priority, checkList: checkListArray, dueDate, listType, isPublic }
         if(assignTo){
             // only the creator can update the assignTo field
             if(user.id.toString() === task.creator.toString()){
@@ -173,6 +173,22 @@ router.patch("/:id", authMiddleware, async (req, res) => {
         res.status(200).json({message: "Task updated successfully.", task});
     } catch (err) {
         res.status(500).json({message: "Task could not be updated. Try checking your task id."});
+    }
+});
+
+router.get("/share/:id", async (req, res) => {
+    try {
+        const task = await Task.findById(req.params.id).select("-__v -creator -assignTo");
+        if (!task) {
+            return res.status(404).json({message: "Task not found."});
+        }
+        if (task.isPublic) {
+            return res.status(200).json({task});
+        } else {
+            return res.status(401).json({message: "Task is not public."});
+        }
+    } catch (err) {
+        return res.status(500).json({message: "Task could not be fetched. Try checking the link."});
     }
 });
 
