@@ -13,9 +13,8 @@ const taskSchema = new Schema({
         enum: ["High Priority", "Medium Priority", "Low Priority"]
     },
     assignTo: {
-        type: [String]
-        //type: [Schema.Types.ObjectId],
-        //ref: "User"
+        type: [Schema.Types.ObjectId],
+        ref: "User"
     },
     checkList: {
         type: [String],
