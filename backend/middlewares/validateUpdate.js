@@ -24,11 +24,13 @@ const validateUpdate = async (req,res,next) => {
             .isLength({min: 8}).withMessage('New password must be at least 8 characters long.')
             .run(req);
         }
-
         const errors = validationResult(req);
         if(!errors.isEmpty()){
-            const errorMessages = errors.array().map(error => error.msg).join(' ');
-            return res.status(400).json({message: `Validation failed. ${errorMessages}`});
+            const errorMessages = errors.array().reduce((acc, error) => {
+                acc[error.path] = acc[error.path] ? `${acc[error.path]} ${error.msg}` : error.msg; // Add error message to the respective field
+                return acc;
+            }, {});
+            return res.status(400).json({message: errorMessages});
         }
         next();
     } catch (err) {

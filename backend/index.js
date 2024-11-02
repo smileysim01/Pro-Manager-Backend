@@ -2,6 +2,7 @@ const express = require("express");
 const mongoose = require("mongoose");
 const dotenv = require("dotenv");
 const bodyParser = require("body-parser");
+const cors = require("cors");
 const errorHandlerMiddleware = require("./middlewares/errorHandler");
 const healthRouter = require("./routes/health");
 const indexRouter = require("./routes/index");
@@ -13,6 +14,11 @@ const app = express();
 dotenv.config();
 const PORT = process.env.PORT;
 
+app.use(cors({
+    origin: "*",
+    methods: ["GET,PUT,PATCH,POST,DELETE"],
+    headers: ["Content-Type", "Authorization"]
+}));
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use("/Pro-Manager/api/v1/health", healthRouter);

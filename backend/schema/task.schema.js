@@ -10,16 +10,15 @@ const taskSchema = new Schema({
     priority: {
         type: String,
         required: true,
-        enum: ["High Priority", "Medium Priority", "Low Priority"]
+        enum: ["HIGH PRIORITY", "MODERATE PRIORITY", "LOW PRIORITY"]
     },
     assignTo: {
         type: [Schema.Types.ObjectId],
         ref: "User"
     },
     checkList: {
-        type: [String],
-        // type: [{subTask: {type: String, required: true}, done: {type: Boolean, default: false}}],
-        // validate: [checkListLimit, 'Checklist cannot have more than 3 items.']
+        // type: [String],
+        type: [{subTask: {type: String, required: true}, done: {type: Boolean, default: false}}],
         required: true
     },
     createdAt: {

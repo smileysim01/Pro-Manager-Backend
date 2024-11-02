@@ -13,7 +13,7 @@ router.post("/", authMiddleware, async (req, res) => {
     }
     try {
         const { title, priority, assignTo, checkList, dueDate } = req.body;
-        const checkListArray = checkList.split(",").map((item) => item.trim());
+        const checkListArray = JSON.parse(checkList);
         const task = new Task({ title, priority, checkList: checkListArray, dueDate, creator: user._id });
         await task.save();
         user.tasks.push(task._id);
@@ -136,8 +136,7 @@ router.patch("/:id", authMiddleware, async (req, res) => {
             return res.status(401).json({message: "You are not authorized to update this task."});
         }
         const { title, priority, assignTo, checkList, dueDate, listType, isPublic} = req.body;
-        const checkListArray = checkList ? checkList.split(",").map((item) => item.trim()) : [];
-        const updateTask = { title, priority, checkList: checkListArray, dueDate, listType, isPublic }
+        const updateTask = { title, priority, checkList: checkList ? JSON.parse(checkList) : checkList, dueDate, listType, isPublic };
         if(assignTo){
             // only the creator can update the assignTo field
             if(user.id.toString() === task.creator.toString()){
@@ -157,6 +156,7 @@ router.patch("/:id", authMiddleware, async (req, res) => {
         task = await Task.findByIdAndUpdate(id, updateTask, {new:true});
         res.status(200).json({message: "Task updated successfully.", task});
     } catch (err) {
+        console.log(err);
         res.status(500).json({message: "Task could not be updated. Try checking your task id."});
     }
 });
