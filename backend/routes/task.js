@@ -13,8 +13,7 @@ router.post("/", authMiddleware, async (req, res) => {
     }
     try {
         const { title, priority, assignTo, checkList, dueDate } = req.body;
-        const checkListArray = JSON.parse(checkList);
-        const task = new Task({ title, priority, checkList: checkListArray, dueDate, creator: user._id });
+        const task = new Task({ title, priority, checkList, dueDate, creator: user._id });
         await task.save();
         user.tasks.push(task._id);
         const assignedUsers = (await fillAssignedUsers(assignTo, task._id)).validAssigneesId;
@@ -156,7 +155,6 @@ router.patch("/:id", authMiddleware, async (req, res) => {
         task = await Task.findByIdAndUpdate(id, updateTask, {new:true});
         res.status(200).json({message: "Task updated successfully.", task});
     } catch (err) {
-        console.log(err);
         res.status(500).json({message: "Task could not be updated. Try checking your task id."});
     }
 });

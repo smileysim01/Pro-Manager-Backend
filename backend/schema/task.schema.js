@@ -17,7 +17,6 @@ const taskSchema = new Schema({
         ref: "User"
     },
     checkList: {
-        // type: [String],
         type: [{subTask: {type: String, required: true}, done: {type: Boolean, default: false}}],
         required: true
     },
